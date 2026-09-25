@@ -19,7 +19,6 @@ struct WeReadMacElinkApp: App {
             CommandMenu("阅读") {
                 Button("搜索微信读书") { assistant.showSearch() }
                     .keyboardShortcut("k", modifiers: .command)
-                Button("继续阅读") { assistant.showShelf() }
                 Divider()
                 Button("上一页") { navigator.previousPage() }
                     .keyboardShortcut(.leftArrow, modifiers: [])

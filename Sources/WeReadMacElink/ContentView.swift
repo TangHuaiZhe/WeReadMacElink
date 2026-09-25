@@ -18,9 +18,8 @@ struct ContentView: View {
         }
         .frame(minWidth: 900, minHeight: 650)
         .background(Color.white)
-        .sheet(item: $assistant.presentedPanel) { panel in
+        .sheet(isPresented: $assistant.isSearchPresented) {
             WeReadAssistantPanel(
-                panel: panel,
                 assistant: assistant,
                 navigator: navigator
             )
@@ -44,11 +43,6 @@ struct ContentView: View {
                 Image(systemName: "arrow.clockwise")
             }
             .help("刷新")
-
-            Button(action: assistant.showShelf) {
-                Label("继续阅读", systemImage: "books.vertical")
-            }
-            .help("从微信读书书架加载最近阅读")
 
             Button(action: assistant.showSearch) {
                 Label("搜索", systemImage: "magnifyingglass")

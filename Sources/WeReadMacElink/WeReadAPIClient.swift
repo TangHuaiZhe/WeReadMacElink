@@ -1,17 +1,5 @@
 import Foundation
 
-struct WeReadBook: Codable, Identifiable, Equatable {
-    let bookId: String
-    let deepLink: String
-    let title: String
-    let author: String
-    let category: String?
-    let readUpdateTime: TimeInterval?
-    let finishReading: Int?
-
-    var id: String { bookId }
-}
-
 struct WeReadSearchBook: Identifiable, Equatable {
     let bookId: String
     let deepLink: String
@@ -57,26 +45,12 @@ struct WeReadAPIClient {
         self.session = session
     }
 
-    func recentBooks(limit: Int = 12) async throws -> [WeReadBook] {
-        let data = try await request(apiName: "/shelf/sync")
-        return try Self.decodeRecentBooks(data: data, limit: limit)
-    }
-
     func searchBooks(keyword: String) async throws -> [WeReadSearchBook] {
         let data = try await request(
             apiName: "/store/search",
             parameters: ["keyword": keyword, "scope": 10]
         )
         return try Self.decodeSearchBooks(data: data)
-    }
-
-    static func decodeRecentBooks(data: Data, limit: Int = 12) throws -> [WeReadBook] {
-        let response = try decoder.decode(ShelfResponse.self, from: data)
-        return response.books
-            .filter { ($0.readUpdateTime ?? 0) > 0 && $0.finishReading != 1 }
-            .sorted { ($0.readUpdateTime ?? 0) > ($1.readUpdateTime ?? 0) }
-            .prefix(limit)
-            .map { $0 }
     }
 
     static func decodeSearchBooks(data: Data) throws -> [WeReadSearchBook] {
@@ -147,10 +121,6 @@ private struct GatewayMetadata: Decodable {
     struct UpgradeInfo: Decodable {
         let message: String
     }
-}
-
-private struct ShelfResponse: Decodable {
-    let books: [WeReadBook]
 }
 
 private struct SearchResponse: Decodable {
