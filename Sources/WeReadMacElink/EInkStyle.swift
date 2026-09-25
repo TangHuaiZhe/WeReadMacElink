@@ -15,6 +15,11 @@ enum EInkStyle {
             normalizedContrast * 0.6
         )
         let contentWidth = Int((profile.contentWidth * 100).rounded())
+        let controlsGutter = String(
+            format: "%.2f",
+            locale: Locale(identifier: "en_US_POSIX"),
+            (100 - Double(contentWidth)) / 4
+        )
         let filter = profile.grayscale
             ? "grayscale(100%) contrast(\(contrast))"
             : "contrast(\(contrast))"
@@ -45,6 +50,11 @@ enum EInkStyle {
         .readerContent .readerContentHeader {
           margin-left: clamp(24px, 3vw, 56px) !important;
           margin-right: clamp(24px, 3vw, 56px) !important;
+        }
+        body:not(:has(.wr_horizontalReader)) .readerControls {
+          left: auto !important;
+          right: max(16px, calc(\(controlsGutter)vw - 24px)) !important;
+          margin-left: 0 !important;
         }
         .readerChapterContent,
         .wr_horizontalReader .readerChapterContent {

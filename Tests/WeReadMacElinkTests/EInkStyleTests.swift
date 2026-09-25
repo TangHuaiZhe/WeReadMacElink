@@ -28,6 +28,8 @@ final class EInkStyleTests: XCTestCase {
         XCTAssertTrue(css.contains("-webkit-text-stroke: 0.30px currentColor"))
         XCTAssertTrue(css.contains("width: 85vw !important"))
         XCTAssertTrue(css.contains("margin-left: clamp(24px, 3vw, 56px) !important"))
+        XCTAssertTrue(css.contains("body:not(:has(.wr_horizontalReader)) .readerControls"))
+        XCTAssertTrue(css.contains("right: max(16px, calc(3.75vw - 24px)) !important"))
         XCTAssertTrue(css.contains("::selection"))
         XCTAssertTrue(css.contains("background: #000000 !important"))
         XCTAssertTrue(css.contains("animation: none !important"))
