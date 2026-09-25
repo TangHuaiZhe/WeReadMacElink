@@ -21,6 +21,10 @@ final class ReaderNavigator: ObservableObject {
         webView?.reload()
     }
 
+    func open(_ url: URL) {
+        webView?.load(URLRequest(url: url))
+    }
+
     func previousPage() {
         webView?.evaluateJavaScript(EInkStyle.pageTurnScript(direction: -1))
     }

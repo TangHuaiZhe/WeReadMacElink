@@ -13,6 +13,8 @@
 - 选中文字使用适合墨水屏的黑底白字高亮。
 - 可关闭网页动画和滚动动画，减少墨水屏残影。
 - 自动识别窗口所在显示器并显示其名称。
+- 原生“继续阅读”面板按最近阅读时间加载未读完书籍。
+- 支持 `⌘K` 打开原生电子书搜索，并使用微信读书返回的官方链接跳转。
 - 字号、对比度、正文宽度等设置自动保存在本机。
 - 非微信读书域名的链接交由系统默认浏览器打开。
 
@@ -23,6 +25,14 @@
 - 网络连接和可正常使用的微信读书账号。
 
 ## 构建与运行
+
+继续阅读和搜索功能需要先设置微信读书 Agent API（智能体接口）密钥：
+
+```bash
+export WEREAD_API_KEY=<你的apikey>
+```
+
+应用只从环境变量读取密钥，不会把密钥写入仓库、网页脚本或偏好设置。
 
 ```bash
 swift test
@@ -51,6 +61,8 @@ Sources/WeReadMacElink/
 ├── ReaderNavigator.swift    页面导航
 ├── ReaderSettings.swift     设置持久化
 ├── ReaderWebView.swift      WebKit 容器与域名限制
+├── WeReadAPIClient.swift    微信读书智能体接口客户端
+├── WeReadAssistant.swift    继续阅读与搜索面板
 └── WeReadMacElinkApp.swift  应用入口
 ```
 

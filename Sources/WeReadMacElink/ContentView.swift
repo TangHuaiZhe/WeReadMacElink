@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var settings: ReaderSettings
     @ObservedObject var navigator: ReaderNavigator
+    @ObservedObject var assistant: WeReadAssistant
     @State private var screenName = "正在识别显示器"
 
     var body: some View {
@@ -17,6 +18,13 @@ struct ContentView: View {
         }
         .frame(minWidth: 900, minHeight: 650)
         .background(Color.white)
+        .sheet(item: $assistant.presentedPanel) { panel in
+            WeReadAssistantPanel(
+                panel: panel,
+                assistant: assistant,
+                navigator: navigator
+            )
+        }
     }
 
     private var controls: some View {
@@ -36,6 +44,16 @@ struct ContentView: View {
                 Image(systemName: "arrow.clockwise")
             }
             .help("刷新")
+
+            Button(action: assistant.showShelf) {
+                Label("继续阅读", systemImage: "books.vertical")
+            }
+            .help("从微信读书书架加载最近阅读")
+
+            Button(action: assistant.showSearch) {
+                Label("搜索", systemImage: "magnifyingglass")
+            }
+            .help("搜索微信读书电子书（⌘K）")
 
             Divider().frame(height: 24)
 
