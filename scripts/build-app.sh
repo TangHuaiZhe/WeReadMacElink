@@ -12,6 +12,7 @@ rm -rf "$app_dir"
 mkdir -p "$contents_dir/MacOS" "$contents_dir/Resources"
 cp ".build/release/WeReadMacElink" "$contents_dir/MacOS/WeReadMacElink"
 cp "Resources/Info.plist" "$contents_dir/Info.plist"
+cp "Resources/AppIcon.icns" "$contents_dir/Resources/AppIcon.icns"
 
 codesign --force --sign - "$app_dir"
 echo "$app_dir"
