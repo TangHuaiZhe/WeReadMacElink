@@ -10,6 +10,21 @@ struct WeReadSearchBook: Identifiable, Equatable {
     var id: String { bookId }
 }
 
+struct WeReadReadingStatistics: Equatable {
+    let today: Int
+    let week: Int
+    let year: Int
+
+    static func durationText(seconds: Int) -> String {
+        let minutes = max(0, seconds) / 60
+        let hours = minutes / 60
+        let remainingMinutes = minutes % 60
+        if hours == 0 { return "\(minutes) 分钟" }
+        if remainingMinutes == 0 { return "\(hours) 小时" }
+        return "\(hours) 小时 \(remainingMinutes) 分"
+    }
+}
+
 enum WeReadAPIError: LocalizedError, Equatable {
     case missingAPIKey
     case upgradeRequired(String)
@@ -53,6 +68,26 @@ struct WeReadAPIClient {
         return try Self.decodeSearchBooks(data: data)
     }
 
+    func readingStatistics(
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) async throws -> WeReadReadingStatistics {
+        let weeklyData = try await request(
+            apiName: "/readdata/detail",
+            parameters: ["mode": "weekly", "baseTime": 0]
+        )
+        let annualData = try await request(
+            apiName: "/readdata/detail",
+            parameters: ["mode": "annually", "baseTime": 0]
+        )
+        return try Self.decodeReadingStatistics(
+            weeklyData: weeklyData,
+            annualData: annualData,
+            now: now,
+            calendar: calendar
+        )
+    }
+
     static func decodeSearchBooks(data: Data) throws -> [WeReadSearchBook] {
         let response = try decoder.decode(SearchResponse.self, from: data)
         var seen = Set<String>()
@@ -69,6 +104,22 @@ struct WeReadAPIClient {
                     soldout: book.soldout == 1
                 )
             }
+    }
+
+    static func decodeReadingStatistics(
+        weeklyData: Data,
+        annualData: Data,
+        now: Date,
+        calendar: Calendar
+    ) throws -> WeReadReadingStatistics {
+        let weekly = try decoder.decode(ReadDataResponse.self, from: weeklyData)
+        let annual = try decoder.decode(ReadDataResponse.self, from: annualData)
+        let todayKey = String(Int(calendar.startOfDay(for: now).timeIntervalSince1970))
+        return WeReadReadingStatistics(
+            today: weekly.readTimes?[todayKey] ?? 0,
+            week: weekly.totalReadTime,
+            year: annual.totalReadTime
+        )
     }
 
     private func request(
@@ -141,4 +192,9 @@ private struct SearchBookInfo: Decodable {
     let title: String
     let author: String
     let soldout: Int?
+}
+
+private struct ReadDataResponse: Decodable {
+    let totalReadTime: Int
+    let readTimes: [String: Int]?
 }

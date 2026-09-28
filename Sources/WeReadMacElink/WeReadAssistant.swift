@@ -6,6 +6,9 @@ final class WeReadAssistant: ObservableObject {
     @Published private(set) var searchResults: [WeReadSearchBook] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var readingStatistics: WeReadReadingStatistics?
+    @Published private(set) var isStatisticsLoading = false
+    @Published private(set) var statisticsErrorMessage: String?
     @Published var searchText = ""
 
     private let client: WeReadAPIClient
@@ -27,6 +30,18 @@ final class WeReadAssistant: ObservableObject {
         }
         await load {
             searchResults = try await client.searchBooks(keyword: keyword)
+        }
+    }
+
+    func refreshReadingStatistics() async {
+        guard !isStatisticsLoading else { return }
+        isStatisticsLoading = true
+        statisticsErrorMessage = nil
+        defer { isStatisticsLoading = false }
+        do {
+            readingStatistics = try await client.readingStatistics()
+        } catch {
+            statisticsErrorMessage = error.localizedDescription
         }
     }
 

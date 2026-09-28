@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
@@ -9,6 +10,7 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             controls
+            readingStatisticsBar
             Divider()
             ReaderWebView(
                 settings: settings,
@@ -23,6 +25,12 @@ struct ContentView: View {
                 assistant: assistant,
                 navigator: navigator
             )
+        }
+        .task {
+            await assistant.refreshReadingStatistics()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await assistant.refreshReadingStatistics() }
         }
     }
 
@@ -94,6 +102,49 @@ struct ContentView: View {
         .buttonStyle(.borderless)
         .padding(.horizontal, 14)
         .frame(height: 48)
+    }
+
+    private var readingStatisticsBar: some View {
+        HStack(spacing: 0) {
+            Label("阅读时长", systemImage: "clock")
+                .fontWeight(.semibold)
+
+            if let statistics = assistant.readingStatistics {
+                statistic("今天", seconds: statistics.today)
+                statistic("本周", seconds: statistics.week)
+                statistic("本年", seconds: statistics.year)
+            } else {
+                Text(assistant.statisticsErrorMessage == nil ? "正在读取…" : "暂时无法获取")
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 18)
+                    .help(assistant.statisticsErrorMessage ?? "")
+            }
+
+            Spacer()
+            Button {
+                Task { await assistant.refreshReadingStatistics() }
+            } label: {
+                Label("刷新", systemImage: "arrow.clockwise")
+            }
+            .disabled(assistant.isStatisticsLoading)
+            .help("刷新微信读书官方阅读统计")
+        }
+        .font(.callout)
+        .padding(.horizontal, 14)
+        .frame(height: 34)
+        .background(Color(nsColor: .controlBackgroundColor))
+    }
+
+    private func statistic(_ label: String, seconds: Int) -> some View {
+        HStack(spacing: 7) {
+            Divider().frame(height: 16)
+            Text(label)
+                .foregroundStyle(.secondary)
+            Text(WeReadReadingStatistics.durationText(seconds: seconds))
+                .monospacedDigit()
+                .fontWeight(.medium)
+        }
+        .padding(.leading, 18)
     }
 
     private func settingButtons(

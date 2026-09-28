@@ -18,4 +18,35 @@ final class WeReadAPIClientTests: XCTestCase {
         XCTAssertEqual(books.map(\.bookId), ["1", "2"])
         XCTAssertTrue(books[1].soldout)
     }
+
+    func testDecodeReadingStatisticsUsesTodayBucketAndPeriodTotals() throws {
+        let weeklyData = Data(
+            """
+            {"baseTime":1790524800,"totalReadTime":9000,"readTimes":{"1790524800":4612}}
+            """.utf8
+        )
+        let annualData = Data(
+            """
+            {"baseTime":1767196800,"totalReadTime":559222}
+            """.utf8
+        )
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 8 * 60 * 60)!
+        let now = Date(timeIntervalSince1970: 1_790_568_000)
+
+        let statistics = try WeReadAPIClient.decodeReadingStatistics(
+            weeklyData: weeklyData,
+            annualData: annualData,
+            now: now,
+            calendar: calendar
+        )
+
+        XCTAssertEqual(statistics, WeReadReadingStatistics(today: 4612, week: 9000, year: 559222))
+    }
+
+    func testReadingDurationTextUsesMinutesAndHours() {
+        XCTAssertEqual(WeReadReadingStatistics.durationText(seconds: 59), "0 分钟")
+        XCTAssertEqual(WeReadReadingStatistics.durationText(seconds: 3_600), "1 小时")
+        XCTAssertEqual(WeReadReadingStatistics.durationText(seconds: 3_661), "1 小时 1 分")
+    }
 }
