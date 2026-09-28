@@ -2,6 +2,7 @@ import Foundation
 
 enum EInkStyle {
     static let styleElementID = "weread-mac-elink-style"
+    static let progressMessageHandler = "readingProgress"
 
     static func css(for profile: EInkProfile) -> String {
         let contrast = String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), profile.contrast)
@@ -112,6 +113,49 @@ enum EInkStyle {
           document.dispatchEvent(new KeyboardEvent('keydown', { key: '\(key)', bubbles: true }));
           window.scrollBy({ top: window.innerHeight * \(amount), behavior: 'auto' });
           return 'fallback';
+        })();
+        """
+    }
+
+    static var progressTrackingScript: String {
+        """
+        (() => {
+          const handler = window.webkit?.messageHandlers?.\(progressMessageHandler);
+          if (!handler) return;
+
+          const report = () => {
+            let progress = null;
+            if (location.pathname.startsWith('/web/reader/')) {
+              const catalog = document.querySelector('.readerCatalog');
+              const vueProgress = catalog?.__vue__?.progressPercentage;
+              if (Number.isFinite(Number(vueProgress))) {
+                progress = Math.round(Number(vueProgress));
+              } else {
+                const progressText = catalog?.textContent || '';
+                const match = progressText.match(/当前读到\\s*(\\d+(?:\\.\\d+)?)%/);
+                if (match) progress = Math.round(Number(match[1]));
+              }
+            }
+
+            const normalized = progress === null
+              ? -1
+              : Math.min(100, Math.max(0, progress));
+            if (window.__wereadMacElinkLastProgress !== normalized) {
+              window.__wereadMacElinkLastProgress = normalized;
+              handler.postMessage(normalized);
+            }
+          };
+
+          report();
+          if (window.__wereadMacElinkProgressInstalled) return;
+          window.__wereadMacElinkProgressInstalled = true;
+          new MutationObserver(report).observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+            characterData: true
+          });
+          window.setInterval(report, 2000);
+          window.addEventListener('popstate', report);
         })();
         """
     }

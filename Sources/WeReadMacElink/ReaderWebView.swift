@@ -22,6 +22,17 @@ struct ReaderWebView: NSViewRepresentable {
                 forMainFrameOnly: true
             )
         )
+        configuration.userContentController.addUserScript(
+            WKUserScript(
+                source: EInkStyle.progressTrackingScript,
+                injectionTime: .atDocumentEnd,
+                forMainFrameOnly: true
+            )
+        )
+        configuration.userContentController.add(
+            context.coordinator,
+            name: EInkStyle.progressMessageHandler
+        )
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -43,10 +54,11 @@ struct ReaderWebView: NSViewRepresentable {
         navigator.webView = webView
         webView.pageZoom = settings.profile.textScale
         webView.evaluateJavaScript(EInkStyle.installationScript(for: settings.profile))
+        webView.evaluateJavaScript(EInkStyle.progressTrackingScript)
         context.coordinator.updateScreenName(for: webView)
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
         var parent: ReaderWebView
 
         init(_ parent: ReaderWebView) {
@@ -67,7 +79,19 @@ struct ReaderWebView: NSViewRepresentable {
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             webView.pageZoom = parent.settings.profile.textScale
             webView.evaluateJavaScript(EInkStyle.installationScript(for: parent.settings.profile))
+            webView.evaluateJavaScript(EInkStyle.progressTrackingScript)
             updateScreenName(for: webView)
+        }
+
+        func userContentController(
+            _ userContentController: WKUserContentController,
+            didReceive message: WKScriptMessage
+        ) {
+            guard message.name == EInkStyle.progressMessageHandler,
+                  let value = message.body as? NSNumber
+            else { return }
+            let progress = value.intValue
+            parent.navigator.updateReadingProgress(progress >= 0 ? progress : nil)
         }
 
         func webView(

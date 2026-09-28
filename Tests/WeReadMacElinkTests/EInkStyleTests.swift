@@ -46,4 +46,13 @@ final class EInkStyleTests: XCTestCase {
         XCTAssertTrue(EInkStyle.pageTurnScript(direction: 1).contains("renderTarget_pager_button_right"))
         XCTAssertTrue(EInkStyle.pageTurnScript(direction: -1).contains(":not(.renderTarget_pager_button_right)"))
     }
+
+    func testProgressTrackingUsesOfficialCatalogProgress() {
+        let script = EInkStyle.progressTrackingScript
+
+        XCTAssertTrue(script.contains(".readerCatalog"))
+        XCTAssertTrue(script.contains("progressPercentage"))
+        XCTAssertTrue(script.contains("当前读到"))
+        XCTAssertTrue(script.contains(EInkStyle.progressMessageHandler))
+    }
 }

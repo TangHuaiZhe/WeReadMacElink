@@ -72,6 +72,20 @@ struct ContentView: View {
             Toggle("灰阶", isOn: $settings.grayscale)
             Toggle("减少动画", isOn: $settings.reduceMotion)
 
+            if let progress = navigator.readingProgress {
+                Divider().frame(height: 24)
+                HStack(spacing: 7) {
+                    Text("全书 \(progress)%")
+                        .monospacedDigit()
+                    ProgressView(value: Double(progress), total: 100)
+                        .progressViewStyle(.linear)
+                        .frame(width: 72)
+                }
+                .help("微信读书官方阅读进度")
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("全书阅读进度 \(progress)%")
+            }
+
             Spacer(minLength: 8)
             Label(screenName, systemImage: "display")
                 .foregroundStyle(.secondary)
