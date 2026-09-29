@@ -49,4 +49,31 @@ final class WeReadAPIClientTests: XCTestCase {
         XCTAssertEqual(WeReadReadingStatistics.durationText(seconds: 3_600), "1 小时")
         XCTAssertEqual(WeReadReadingStatistics.durationText(seconds: 3_661), "1 小时 1 分")
     }
+
+    func testDecodeBookReadingStatisticsAndEstimateRemainingTime() throws {
+        let data = Data(
+            """
+            {"bookId":"3300114491","book":{"progress":14,"readingTime":13872,"recordReadingTime":0}}
+            """.utf8
+        )
+
+        let statistics = try WeReadAPIClient.decodeBookReadingStatistics(data: data)
+
+        XCTAssertEqual(statistics.bookId, "3300114491")
+        XCTAssertEqual(statistics.readingTime, 13_872)
+        XCTAssertEqual(statistics.progress, 14)
+        XCTAssertEqual(statistics.estimatedRemainingTime, 85_214)
+    }
+
+    func testRemainingTimeNeedsProgressAndHandlesFinishedBook() {
+        XCTAssertNil(
+            WeReadBookReadingStatistics(bookId: "1", progress: 0, readingTime: 600)
+                .estimatedRemainingTime
+        )
+        XCTAssertEqual(
+            WeReadBookReadingStatistics(bookId: "1", progress: 100, readingTime: 600)
+                .estimatedRemainingTime,
+            0
+        )
+    }
 }

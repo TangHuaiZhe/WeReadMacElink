@@ -87,11 +87,17 @@ struct ReaderWebView: NSViewRepresentable {
             _ userContentController: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
-            guard message.name == EInkStyle.progressMessageHandler,
-                  let value = message.body as? NSNumber
-            else { return }
-            let progress = value.intValue
-            parent.navigator.updateReadingProgress(progress >= 0 ? progress : nil)
+            let host = message.frameInfo.securityOrigin.host.lowercased()
+            guard host == "weread.qq.com" || host.hasSuffix(".weread.qq.com") else { return }
+            guard let payload = message.body as? [String: Any] else { return }
+            if message.name == EInkStyle.progressMessageHandler,
+               let value = payload["progress"] as? NSNumber {
+                let progress = value.intValue
+                parent.navigator.updateReadingContext(
+                    progress: progress >= 0 ? progress : nil,
+                    bookId: payload["bookId"] as? String
+                )
+            }
         }
 
         func webView(

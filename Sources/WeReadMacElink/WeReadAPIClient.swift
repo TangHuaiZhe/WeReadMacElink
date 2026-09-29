@@ -25,6 +25,18 @@ struct WeReadReadingStatistics: Equatable {
     }
 }
 
+struct WeReadBookReadingStatistics: Equatable {
+    let bookId: String
+    let progress: Int
+    let readingTime: Int
+
+    var estimatedRemainingTime: Int? {
+        guard progress > 0, readingTime > 0 else { return nil }
+        if progress >= 100 { return 0 }
+        return Int((Double(readingTime) * Double(100 - progress) / Double(progress)).rounded())
+    }
+}
+
 enum WeReadAPIError: LocalizedError, Equatable {
     case missingAPIKey
     case upgradeRequired(String)
@@ -88,6 +100,14 @@ struct WeReadAPIClient {
         )
     }
 
+    func bookReadingStatistics(bookId: String) async throws -> WeReadBookReadingStatistics {
+        let data = try await request(
+            apiName: "/book/getprogress",
+            parameters: ["bookId": bookId]
+        )
+        return try Self.decodeBookReadingStatistics(data: data)
+    }
+
     static func decodeSearchBooks(data: Data) throws -> [WeReadSearchBook] {
         let response = try decoder.decode(SearchResponse.self, from: data)
         var seen = Set<String>()
@@ -119,6 +139,15 @@ struct WeReadAPIClient {
             today: weekly.readTimes?[todayKey] ?? 0,
             week: weekly.totalReadTime,
             year: annual.totalReadTime
+        )
+    }
+
+    static func decodeBookReadingStatistics(data: Data) throws -> WeReadBookReadingStatistics {
+        let response = try decoder.decode(BookProgressResponse.self, from: data)
+        return WeReadBookReadingStatistics(
+            bookId: response.bookId,
+            progress: response.book.progress,
+            readingTime: response.book.readingTime
         )
     }
 
@@ -197,4 +226,14 @@ private struct SearchBookInfo: Decodable {
 private struct ReadDataResponse: Decodable {
     let totalReadTime: Int
     let readTimes: [String: Int]?
+}
+
+private struct BookProgressResponse: Decodable {
+    let bookId: String
+    let book: BookProgress
+
+    struct BookProgress: Decodable {
+        let progress: Int
+        let readingTime: Int
+    }
 }

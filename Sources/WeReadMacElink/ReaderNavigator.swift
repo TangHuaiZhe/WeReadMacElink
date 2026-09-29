@@ -6,6 +6,7 @@ import WebKit
 final class ReaderNavigator: ObservableObject {
     weak var webView: WKWebView?
     @Published private(set) var readingProgress: Int?
+    @Published private(set) var currentBookId: String?
 
     func goHome() {
         webView?.load(URLRequest(url: URL(string: "https://weread.qq.com/")!))
@@ -35,7 +36,8 @@ final class ReaderNavigator: ObservableObject {
         webView?.evaluateJavaScript(EInkStyle.pageTurnScript(direction: 1))
     }
 
-    func updateReadingProgress(_ progress: Int?) {
+    func updateReadingContext(progress: Int?, bookId: String?) {
         readingProgress = progress
+        currentBookId = bookId
     }
 }

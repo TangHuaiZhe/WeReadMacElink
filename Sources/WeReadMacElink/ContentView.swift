@@ -27,10 +27,17 @@ struct ContentView: View {
             )
         }
         .task {
-            await assistant.refreshReadingStatistics()
+            await refreshStatistics()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            Task { await assistant.refreshReadingStatistics() }
+            Task { await refreshStatistics() }
+        }
+        .onChange(of: navigator.currentBookId) { bookId in
+            guard let bookId else {
+                assistant.clearBookReadingStatistics()
+                return
+            }
+            Task { await assistant.refreshBookReadingStatistics(bookId: bookId) }
         }
     }
 
@@ -79,7 +86,6 @@ struct ContentView: View {
 
             Toggle("灰阶", isOn: $settings.grayscale)
             Toggle("减少动画", isOn: $settings.reduceMotion)
-
             if let progress = navigator.readingProgress {
                 Divider().frame(height: 24)
                 HStack(spacing: 7) {
@@ -120,19 +126,34 @@ struct ContentView: View {
                     .help(assistant.statisticsErrorMessage ?? "")
             }
 
+            if let book = assistant.bookReadingStatistics,
+               book.bookId == navigator.currentBookId {
+                statistic("本书", seconds: book.readingTime)
+                if let remaining = book.estimatedRemainingTime {
+                    statistic("预计剩余", seconds: remaining)
+                }
+            }
+
             Spacer()
             Button {
-                Task { await assistant.refreshReadingStatistics() }
+                Task { await refreshStatistics() }
             } label: {
                 Label("刷新", systemImage: "arrow.clockwise")
             }
-            .disabled(assistant.isStatisticsLoading)
+            .disabled(assistant.isStatisticsLoading || assistant.isBookStatisticsLoading)
             .help("刷新微信读书官方阅读统计")
         }
         .font(.callout)
         .padding(.horizontal, 14)
         .frame(height: 34)
         .background(Color(nsColor: .controlBackgroundColor))
+    }
+
+    private func refreshStatistics() async {
+        await assistant.refreshReadingStatistics()
+        if let bookId = navigator.currentBookId {
+            await assistant.refreshBookReadingStatistics(bookId: bookId)
+        }
     }
 
     private func statistic(_ label: String, seconds: Int) -> some View {

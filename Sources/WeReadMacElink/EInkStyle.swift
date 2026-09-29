@@ -47,6 +47,15 @@ enum EInkStyle {
           width: \(contentWidth)vw !important;
           max-width: \(contentWidth)vw !important;
         }
+        .readerContent .readerTopBar {
+          height: 52px !important;
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        .readerContent .navBarOffset,
+        .readerContent .app_content_navBarOffset {
+          padding-top: 72px !important;
+        }
         .readerContent .readerChapterContent,
         .readerContent .readerContentHeader {
           margin-left: clamp(24px, 3vw, 56px) !important;
@@ -83,7 +92,7 @@ enum EInkStyle {
         let encodedCSS = javascriptStringLiteral(css(for: profile))
         return """
         (() => {
-          const id = '\(styleElementID)';
+        const id = '\(styleElementID)';
           let style = document.getElementById(id);
           if (!style) {
             style = document.createElement('style');
@@ -125,6 +134,7 @@ enum EInkStyle {
 
           const report = () => {
             let progress = null;
+            let bookId = null;
             if (location.pathname.startsWith('/web/reader/')) {
               const catalog = document.querySelector('.readerCatalog');
               const vueProgress = catalog?.__vue__?.progressPercentage;
@@ -135,14 +145,24 @@ enum EInkStyle {
                 const match = progressText.match(/当前读到\\s*(\\d+(?:\\.\\d+)?)%/);
                 if (match) progress = Math.round(Number(match[1]));
               }
+
+              bookId = catalog?.__vue__?.bookInfo?.bookId || null;
+              if (!bookId) {
+                const metadata = document.querySelector('script[type="application/ld+json"]');
+                try {
+                  const book = JSON.parse(metadata?.textContent || '{}');
+                  bookId = book['@Id'] || book.bookId || null;
+                } catch (_) {}
+              }
             }
 
             const normalized = progress === null
               ? -1
               : Math.min(100, Math.max(0, progress));
-            if (window.__wereadMacElinkLastProgress !== normalized) {
-              window.__wereadMacElinkLastProgress = normalized;
-              handler.postMessage(normalized);
+            const stateKey = `${bookId || ''}:${normalized}`;
+            if (window.__wereadMacElinkLastProgress !== stateKey) {
+              window.__wereadMacElinkLastProgress = stateKey;
+              handler.postMessage({ progress: normalized, bookId });
             }
           };
 
@@ -165,6 +185,7 @@ enum EInkStyle {
         let arrayLiteral = String(decoding: data, as: UTF8.self)
         return String(arrayLiteral.dropFirst().dropLast())
     }
+
 }
 
 private extension Double {

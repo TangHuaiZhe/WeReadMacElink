@@ -22,11 +22,18 @@ final class EInkStyleTests: XCTestCase {
         )
 
         XCTAssertTrue(css.contains(".readerChapterContent"))
-        XCTAssertFalse(css.contains("font-size:"))
+        XCTAssertNil(
+            css.range(
+                of: #"(?s)\.readerChapterContent,\s*\.wr_horizontalReader \.readerChapterContent\s*\{[^}]*font-size:"#,
+                options: .regularExpression
+            )
+        )
         XCTAssertTrue(css.contains("grayscale(100%) contrast(1.50)"))
         XCTAssertTrue(css.contains("color: #2b2b2b !important"))
         XCTAssertTrue(css.contains("-webkit-text-stroke: 0.30px currentColor"))
         XCTAssertTrue(css.contains("width: 85vw !important"))
+        XCTAssertTrue(css.contains("height: 52px !important"))
+        XCTAssertTrue(css.contains("padding-top: 72px !important"))
         XCTAssertTrue(css.contains("margin-left: clamp(24px, 3vw, 56px) !important"))
         XCTAssertTrue(css.contains("body:not(:has(.wr_horizontalReader)) .readerControls"))
         XCTAssertTrue(css.contains("right: max(16px, calc(3.75vw - 24px)) !important"))
@@ -53,6 +60,9 @@ final class EInkStyleTests: XCTestCase {
         XCTAssertTrue(script.contains(".readerCatalog"))
         XCTAssertTrue(script.contains("progressPercentage"))
         XCTAssertTrue(script.contains("当前读到"))
+        XCTAssertTrue(script.contains("bookInfo?.bookId"))
+        XCTAssertTrue(script.contains("@Id"))
         XCTAssertTrue(script.contains(EInkStyle.progressMessageHandler))
     }
+
 }

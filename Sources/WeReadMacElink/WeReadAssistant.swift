@@ -9,9 +9,12 @@ final class WeReadAssistant: ObservableObject {
     @Published private(set) var readingStatistics: WeReadReadingStatistics?
     @Published private(set) var isStatisticsLoading = false
     @Published private(set) var statisticsErrorMessage: String?
+    @Published private(set) var bookReadingStatistics: WeReadBookReadingStatistics?
+    @Published private(set) var isBookStatisticsLoading = false
     @Published var searchText = ""
 
     private let client: WeReadAPIClient
+    private var requestedBookId: String?
 
     init(client: WeReadAPIClient = WeReadAPIClient()) {
         self.client = client
@@ -43,6 +46,31 @@ final class WeReadAssistant: ObservableObject {
         } catch {
             statisticsErrorMessage = error.localizedDescription
         }
+    }
+
+    func refreshBookReadingStatistics(bookId: String) async {
+        requestedBookId = bookId
+        if bookReadingStatistics?.bookId != bookId {
+            bookReadingStatistics = nil
+        }
+        isBookStatisticsLoading = true
+        defer {
+            if requestedBookId == bookId { isBookStatisticsLoading = false }
+        }
+        do {
+            let statistics = try await client.bookReadingStatistics(bookId: bookId)
+            guard requestedBookId == bookId else { return }
+            bookReadingStatistics = statistics
+        } catch {
+            guard requestedBookId == bookId else { return }
+            bookReadingStatistics = nil
+        }
+    }
+
+    func clearBookReadingStatistics() {
+        requestedBookId = nil
+        bookReadingStatistics = nil
+        isBookStatisticsLoading = false
     }
 
     private func load(_ operation: () async throws -> Void) async {
