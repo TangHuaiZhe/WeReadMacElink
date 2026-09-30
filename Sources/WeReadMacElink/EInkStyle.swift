@@ -77,6 +77,15 @@ enum EInkStyle {
           -webkit-text-stroke: \(strokeWidth)px currentColor;
           text-shadow: none !important;
         }
+        /* 双栏横向翻页模式把目录面板放在 readerChapterContent 内部，上面的正文墨色
+           规则会把站点深色面板上的浅色文字压成深色，目录因此不可读；这里让目录保持
+           站点自己的深底浅字，并去掉墨水描边。上下滚动模式下目录在 readerContent 下，
+           不经过 readerChapterContent，所以该规则只在双栏模式生效。 */
+        .readerChapterContent .readerCatalog,
+        .readerChapterContent .readerCatalog :is(p, span, div, h1, h2, h3, h4, h5, h6, li, blockquote) {
+          color: #eef0f4 !important;
+          -webkit-text-stroke: 0 transparent !important;
+        }
         ::selection {
           color: #ffffff !important;
           -webkit-text-fill-color: #ffffff !important;

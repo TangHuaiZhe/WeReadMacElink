@@ -42,6 +42,21 @@ final class EInkStyleTests: XCTestCase {
         XCTAssertTrue(css.contains("animation: none !important"))
     }
 
+    func testCatalogPanelKeepsOfficialColorsInHorizontalReader() throws {
+        let css = EInkStyle.css(for: EInkProfile())
+
+        let inkRule = try XCTUnwrap(
+            css.range(of: ".readerChapterContent :is(p, span, div, h1, h2, h3, h4, h5, h6, li, blockquote)")
+        )
+        let catalogRule = try XCTUnwrap(
+            css.range(of: ".readerChapterContent .readerCatalog")
+        )
+
+        XCTAssertLessThan(inkRule.lowerBound, catalogRule.lowerBound)
+        XCTAssertTrue(css.contains("color: #eef0f4 !important"))
+        XCTAssertTrue(css.contains("-webkit-text-stroke: 0 transparent !important"))
+    }
+
     func testColorModeCanKeepOriginalColors() {
         let css = EInkStyle.css(for: EInkProfile(grayscale: false))
 
