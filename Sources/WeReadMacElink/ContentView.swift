@@ -83,6 +83,12 @@ struct ContentView: View {
                 decrease: settings.decreaseContentWidth,
                 increase: settings.increaseContentWidth
             )
+            .disabled(navigator.readerLayout.rendersArticleOnCanvas)
+            .help(
+                navigator.readerLayout.rendersArticleOnCanvas
+                    ? "双栏横向翻页模式的正文由画布预渲染，正文宽度调整不生效；字号、灰阶和整体对比度仍然有效"
+                    : "上下滚动模式的正文宽度，占窗口宽度的 60%–95%"
+            )
 
             Toggle("灰阶", isOn: $settings.grayscale)
             Toggle("减少动画", isOn: $settings.reduceMotion)
@@ -132,6 +138,15 @@ struct ContentView: View {
                 if let remaining = book.estimatedRemainingTime {
                     statistic("预计剩余", seconds: remaining)
                 }
+            }
+
+            if navigator.readerLayout.rendersArticleOnCanvas {
+                Divider().frame(height: 16)
+                Label("双栏模式：正文宽度与墨色不生效", systemImage: "rectangle.split.2x1")
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 18)
+                    .help("当前是双栏横向翻页：正文由画布预渲染，正文宽度和文字墨色、笔画调整拿不到正文；字号、灰阶和整体对比度仍然生效。")
+                    .accessibilityLabel("当前是双栏横向翻页模式，正文宽度和文字墨色调整不生效")
             }
 
             Spacer()

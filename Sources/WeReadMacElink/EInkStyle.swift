@@ -142,6 +142,10 @@ enum EInkStyle {
           if (!handler) return;
 
           const report = () => {
+            const layout = document.querySelector('.wr_horizontalReader')
+              ? 'horizontal'
+              : (document.querySelector('.readerContent') ? 'vertical' : null);
+
             let progress = null;
             let bookId = null;
             if (location.pathname.startsWith('/web/reader/')) {
@@ -168,10 +172,10 @@ enum EInkStyle {
             const normalized = progress === null
               ? -1
               : Math.min(100, Math.max(0, progress));
-            const stateKey = `${bookId || ''}:${normalized}`;
+            const stateKey = `${bookId || ''}:${normalized}:${layout || ''}`;
             if (window.__wereadMacElinkLastProgress !== stateKey) {
               window.__wereadMacElinkLastProgress = stateKey;
-              handler.postMessage({ progress: normalized, bookId });
+              handler.postMessage({ progress: normalized, bookId, layout });
             }
           };
 

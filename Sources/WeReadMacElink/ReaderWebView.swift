@@ -95,7 +95,8 @@ struct ReaderWebView: NSViewRepresentable {
                 let progress = value.intValue
                 parent.navigator.updateReadingContext(
                     progress: progress >= 0 ? progress : nil,
-                    bookId: payload["bookId"] as? String
+                    bookId: payload["bookId"] as? String,
+                    layout: ReaderLayout(reportedValue: payload["layout"] as? String)
                 )
             }
         }

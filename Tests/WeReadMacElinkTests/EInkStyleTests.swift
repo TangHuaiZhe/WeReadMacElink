@@ -80,4 +80,14 @@ final class EInkStyleTests: XCTestCase {
         XCTAssertTrue(script.contains(EInkStyle.progressMessageHandler))
     }
 
+    func testProgressTrackingReportsReaderLayout() {
+        let script = EInkStyle.progressTrackingScript
+
+        XCTAssertTrue(script.contains(".wr_horizontalReader"))
+        XCTAssertTrue(script.contains(".readerContent"))
+        XCTAssertTrue(script.contains("'horizontal'"))
+        XCTAssertTrue(script.contains("'vertical'"))
+        XCTAssertTrue(script.contains("bookId, layout"))
+    }
+
 }

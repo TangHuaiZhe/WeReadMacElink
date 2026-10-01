@@ -39,6 +39,7 @@
 
 - 顶部控制栏提供首页、后退、前进和刷新，并集中放置字号、对比度、正文宽度的加减按钮。
 - 控制栏显示微信读书官方的全书阅读进度（百分比与进度条），仅在进入阅读页后出现。
+- 自动识别阅读页当前布局：处于双栏横向翻页模式时，控制栏会提示「双栏模式：宽度与墨色不生效」，并停用正文宽度按钮。
 - 自动识别窗口所在显示器并显示其名称。
 - 支持 `⌘K` 打开原生电子书搜索，并使用微信读书返回的官方链接跳转；已下架书籍会标注并禁用。
 - 非微信读书域名的链接交由系统默认浏览器打开。
@@ -103,8 +104,10 @@ Sources/WeReadMacElink/
 └── WeReadMacElinkApp.swift  应用入口与菜单命令
 
 Tests/WeReadMacElinkTests/
-├── EInkStyleTests.swift         样式生成、脚本选择器与参数边界断言
-└── WeReadAPIClientTests.swift   接口解码、时长格式化与剩余时长估算
+├── EInkStyleTests.swift                  样式生成、脚本选择器与参数边界断言
+├── ReaderLayoutTests.swift               阅读布局上报值的映射
+├── ProgressTrackingScriptTests.swift     在 JavaScriptCore 桩 DOM 上执行注入脚本
+└── WeReadAPIClientTests.swift            接口解码、时长格式化与剩余时长估算
 
 Resources/                        Info.plist 与应用图标
 scripts/build-app.sh              构建并临时签名 .app
@@ -125,5 +128,6 @@ scripts/build-app.sh              构建并临时签名 .app
 - 页面样式依赖微信读书网页版当前的容器类名；官网改版后可能需要同步更新 `EInkStyle.swift`。
 - 阅读进度与书籍 ID 依赖阅读页当前的前端结构，官网改版后可能读不到，此时进度显示会隐藏，正文阅读不受影响。
 - 阅读时长与单书进度依赖官方智能体接口；未配置密钥或接口不可用时，统计栏和搜索会提示不可用。
+- 双栏横向翻页模式的正文由站点预渲染到画布，字号（页面缩放）、灰阶和整体对比度仍然有效，但正文宽度与文字墨色、笔画调整无法作用于正文；控制栏会在该模式提示，上下滚动模式不受此限制。
 - 当前仅针对 macOS 和外接墨水屏进行设计与验证。
 - 本项目与腾讯或微信读书没有隶属、授权或合作关系。
